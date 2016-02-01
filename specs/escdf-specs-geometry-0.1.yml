@@ -1,0 +1,182 @@
+%YAML 1.2
+---
+
+absolute_or_reduced_coordinates:
+    object: scalar
+    type: unsigned_int
+    values: [1, 2]
+    spec_type: metadata
+atomic_numbers:
+    object: array
+    object_dims:
+        - "@number_of_species"
+    type: double
+    spec_type: dataset
+bulk_regions_for_semi_infinite_dimension:
+    object: array
+    object_dims:
+      - 2
+      - 2
+    type: double
+    spec_type: dataset
+cell_in_host:
+    object: array
+    object_dims:
+        - "@number_of_physical_dimensions"
+        - "@number_of_sites"
+    type: unsigned_int
+    spec_type: dataset
+chemical_symbols:
+    object: array
+    object_dims:
+        - "@number_of_species"
+        - 2
+    type: char
+    spec_type: dataset
+concentration_of_species_at_site:
+    object: varying_array
+    object_dims:
+        - "@number_of_sites"
+        - "@number_of_species_at_site(?)"
+    type: double
+    spec_type: dataset
+dimension_types:
+    object: array
+    object_dims:
+        - "@number_of_physical_dimensions"
+    type: unsigned_int
+    values: [0, 1, 2]
+    spec_type: dataset
+embedded_system:
+    object: scalar
+    object_dims: [3]
+    type: char
+    values: ["no", "yes"]
+    spec_type: metadata
+forces:
+    object: array
+    object_dims:
+        - "@number_of_sites"
+        - "@number_of_physical_dimensions"
+    type: double
+    spec_type: dataset
+lattice_vectors:
+    object: array
+    object_dims:
+        - "@number_of_physical_dimensions"
+        - "@number_of_physical_dimensions"
+    type: double
+    spec_type: dataset
+local_rotations:
+    object: array
+    object_dims:
+        - "@number_of_sites"
+        - "@number_of_physical_dimensions"
+        - "@number_of_physical_dimensions"
+    type: double
+    spec_type: dataset
+magnetic_moments:
+    object: array
+    object_dims:
+        - "@number_of_sites"
+        - "@number_of_species_at_site(?)"
+        - "@number_of_physical_dimensions"
+    type: double
+    spec_type: dataset
+number_of_physical_dimensions:
+    object: scalar
+    type: unsigned_int
+    values: [3]
+    spec_type: metadata
+number_of_sites:
+    object: scalar
+    type: unsigned_int
+    spec_type: metadata
+number_of_species:
+    object: scalar
+    type: unsigned_int
+    spec_type: metadata
+number_of_species_at_site:
+    object: array
+    object_dims:
+        - "@number_of_sites"
+    type: unsigned_int
+    spec_type: dataset
+number_of_symmetry_operations:
+    object: scalar
+    type: unsigned_int
+    spec_type: metadata
+reduced_symmetry_matrices:
+    object: array
+    object_dims:
+        - "@number_of_symmetry_operations"
+        - "@number_of_physical_dimensions"
+        - "@number_of_physical_dimensions"
+    type: double
+    spec_type: dataset
+reduced_symmetry_translations:
+    object: array
+    object_dims:
+        - "@number_of_symmetry_operations"
+        - "@number_of_physical_dimensions"
+    type: double
+    spec_type: dataset
+site_in_host:
+    object: array
+    object_dims:
+        - "@number_of_sites"
+    type: unsigned_int
+    spec_type: dataset
+site_positions:
+    object: array
+    object_dims:
+        - "@number_of_sites"
+        - "@number_of_physical_dimensions"
+    type: double
+    spec_type: dataset
+site_regions:
+    object: array
+    object_dims:
+        - "@number_of_sites"
+    type: unsigned_int
+    values: [0, 1, 2]
+    spec_type: dataset
+space_group:
+    object: scalar
+    type: unsigned_int
+    range: [1, 232]
+    spec_type: metadata
+species_at_sites:
+    object: varying_array
+    object_dims:
+        - "@number_of_sites"
+        - "@number_of_species_at_site(?)"
+    type: unsigned_int
+    spec_type: dataset
+species_names:
+    object: array
+    object_dims:
+      - "@number_of_species"
+      - 80
+    type: char
+    spec_type: dataset
+stress_tensor:
+    object: array
+    object_dims:
+        - "@number_of_physical_dimensions"
+        - "@number_of_physical_dimensions"
+    type: double
+    spec_type: dataset
+symmorphic:
+    object: scalar
+    object_dims: [3]
+    type: char
+    values: ["no", "yes"]
+    spec_type: metadata
+time_reversal_symmetry:
+    object: scalar
+    object_dims: [3]
+    type: char
+    values: ["no", "yes"]
+    spec_type: metadata
+
