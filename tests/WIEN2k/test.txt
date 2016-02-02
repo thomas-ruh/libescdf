@@ -1,7 +1,7 @@
  number_of_physical_dimensions           3
  absolute_or_reduced_coordinates           2
  dimension_types           1           1           1
- embedded_systemno 
+ embedded_system no 
  space_group          82
  number_of_sites          16
  number_of_species           6
