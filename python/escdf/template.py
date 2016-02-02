@@ -2,24 +2,21 @@
 
 import re
 import textwrap
-import yaml
 
-                    ########################################
-
-#
-# Templates
-#
 
 class EscdfTemplate(object):
 
-    def __init__(self, text):
+    def __init__(self, text, start_tag="@%", end_tag="%@"):
 
         # Init
         self.text = text
+        self.start_tag = start_tag
+        self.end_tag = end_tag
         self.re_newline = re.compile(r"\n", flags=re.MULTILINE+re.DOTALL)
 
         # Find keywords in template
-        re_keywords = re.compile("@([a-z0-9_]+)@", flags=re.MULTILINE)
+        re_keywords = re.compile("%s([a-z0-9_]+)%s" % \
+            (self.start_tag, self.end_tag), flags=re.MULTILINE)
         self.keywords = re_keywords.findall(self.text)
         if ( self.keywords ):
             self.keywords = list(set(self.keywords))
@@ -28,14 +25,17 @@ class EscdfTemplate(object):
 
         # Find indentation levels of substituted blocks
         # Note: there might be unindented keywords in the template,
-        #       hence the use of another keywords variable here
+        #       hence the use of another keywords variable here.
+        # TODO: inline keywords can be many, but block keywords
+        #       (i.e. when alone in a line) must be unique.
         self.indents = {}
-        re_indent = re.compile("^([ ]+)@([a-z0-9_]+)@$", flags=re.MULTILINE)
+        re_indent = re.compile("^([ ]+)%s([a-z0-9_]+)%s$" % \
+            (self.start_tag, self.end_tag), flags=re.MULTILINE)
         indents = list(set(re_indent.findall(self.text)))
         if ( (len(self.keywords) > 0) and (len(indents) > 0) ):
-            offsets, keywords = zip(*indents)
+            offsets, patterns = zip(*indents)
             for word in self.keywords: 
-                chk_word = [idx for idx, kwd in enumerate(keywords) \
+                chk_word = [idx for idx, kwd in enumerate(patterns) \
                     if kwd == word]
                 if ( len(chk_word) > 1 ):
                     raise NameError(
@@ -46,7 +46,7 @@ class EscdfTemplate(object):
                     self.indents[word] = len(offsets[chk_word[0]])
 
 
-    def check_specs_ok(self, specs):
+    def check_patterns(self, specs):
 
         errs = [item for item in self.keywords if not item in specs]
         if ( len(errs) > 0 ):
@@ -54,8 +54,6 @@ class EscdfTemplate(object):
         errs = [item for item in specs if not item in self.keywords]
         if ( len(errs) > 0 ):
             raise KeyError("extra input keywords: %s" % errs)
-
-        return True
 
 
     def reindent(self, keyword, value):
@@ -74,7 +72,9 @@ class EscdfTemplate(object):
 
         retval = self.text
         for kwd, val in specs.items():
-            retval = re.sub("@%s@" % kwd, self.reindent(kwd, val), retval)
+            retval = re.sub("%s%s%s" % \
+                (self.start_tag, kwd, self.end_tag),
+                self.reindent(kwd, val), retval)
 
         return retval
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
+import os
 import re
-import textwrap
 import yaml
 
                     ########################################
@@ -13,23 +13,36 @@ import yaml
 class EscdfSpecs(object):
 
 
-    def __init__(self, specs_file):
+    def __init__(self, group, specs_text):
 
-        with open(specs_file, "r") as yaml_doc:
-            self.yaml_data = yaml.load(yaml_doc)
-            self.bufs = sorted([item for item in self.yaml_data \
-                if self.yaml_data[item]["spec_type"] == "buffer"])
-            self.sets = sorted([item for item in self.yaml_data \
-                if self.yaml_data[item]["spec_type"] == "dataset"])
-            self.meta = sorted([item for item in self.yaml_data \
-                if self.yaml_data[item]["spec_type"] == "metadata"])
-            self.elts = self.meta + self.sets + self.bufs
+        # Init
+        self.group = group
+
+        # Read specifications from file or text string
+        if ( (not re.search("\n", specs_text, flags=re.DOTALL)) and \
+             os.access(specs_text, os.R_OK) ):
+            with open(specs_file, "r") as yaml_doc:
+                self.yaml_data = yaml.load(yaml_doc)
+        else:
+            self.yaml_data = yaml.load(specs_text)
+
+        # Propagate information
+        self.bufs = sorted([item for item in self.yaml_data \
+            if self.yaml_data[item]["spec_type"] == "buffer"])
+        self.data = sorted([item for item in self.yaml_data \
+            if self.yaml_data[item]["spec_type"] == "dataset"])
+        self.meta = sorted([item for item in self.yaml_data \
+            if self.yaml_data[item]["spec_type"] == "metadata"])
+        self.elts = self.meta + self.data + self.bufs
 
 
     def get_spec(self, elem):
 
         if ( elem in self.elts ):
-            return self.yaml_data[elem]
+            retval = dict(self.yaml_data[elem])
+            retval["name"] = elem
+            retval["group"] = self.group
+            return retval
         else:
             return None
 
@@ -42,9 +55,9 @@ class EscdfSpecs(object):
     def get_reference(self, elem):
 
         if ( self.is_ref_fixed(elem) ):
-            return self.yaml_data[elem[1:]]
+            return self.get_spec(elem[1:])
         elif ( self.is_ref_varying(elem) ):
-            return self.yaml_data[elem[1:-3]]
+            return self.get_spec(elem[1:-3])
         else:
             return None
 
