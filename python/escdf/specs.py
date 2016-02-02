@@ -21,7 +21,7 @@ class EscdfSpecs(object):
         # Read specifications from file or text string
         if ( (not re.search("\n", specs_text, flags=re.DOTALL)) and \
              os.access(specs_text, os.R_OK) ):
-            with open(specs_file, "r") as yaml_doc:
+            with open(specs_text, "r") as yaml_doc:
                 self.yaml_data = yaml.load(yaml_doc)
         else:
             self.yaml_data = yaml.load(specs_text)

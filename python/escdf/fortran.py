@@ -1,5 +1,8 @@
 #!/usr/bin/python3
 
+from escdf.template import EscdfTemplate
+from escdf.specs import EscdfSpecs
+
 #
 # Fortran interface
 #
@@ -54,7 +57,8 @@ class EscdfFortranInterface(object):
             "name":specs["name"],
             "group":specs["group"],
             "action":specs["action"]}
-        f03_specs["params_list"] = [self.specs["group"], self.specs["name"]]
+        params_list = [self.specs["group"], self.specs["name"]]
+        f03_specs["params_list"] = ", ".join(params_list)
         f03_specs["params_desc"] = "type(c_ptr), intent(%s) :: %s\n" % \
             (self.f03_intent[specs["action"]], specs["group"])
         if ( specs["object"] == "scalar" ):
