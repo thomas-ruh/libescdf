@@ -37,6 +37,8 @@ tmp-*
 /doc/configuring-libescdf.html
 /doc/contributing-to-libescdf.html
 /doc/hacking-the-build-system.html
+/fortran/escdf_f03_geometry.c
+/fortran/escdf_geometry.F90
 /src/*.o
 /src/*.lo
 /src/.deps/

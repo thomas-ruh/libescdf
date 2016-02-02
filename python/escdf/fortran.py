@@ -3,6 +3,7 @@
 from escdf.template import EscdfTemplate
 from escdf.specs import EscdfSpecs
 
+
 #
 # Fortran interface
 #
@@ -30,7 +31,7 @@ class EscdfFortranInterface(object):
         else:
             self.template = EscdfTemplate(f03_interface_default)
 
-        # Hard-coded C -> Fortran type conversion (for now) 
+        # Hard-coded specs -> Fortran type conversion (for now) 
         self.f03_type = {
             "bool":"logical",
             "char":"character(len=*)",
@@ -44,9 +45,9 @@ class EscdfFortranInterface(object):
             "unsigned_short":"integer"}
 
         # Hard-coded argument intents (for now)
-        self.f03_intent = {"get":"inout", "put":"in"}
+        self.f03_intent = {"read":"inout", "write":"in"}
 
-        # Check the consistency of the specs
+        # Check consistency of specs
         required_fields = ["action", "group", "name", "object", "type"]
         errs = [item for item in required_fields if item not in specs]
         if ( len(errs) > 0 ):
@@ -123,6 +124,7 @@ module escdf_@%group%@
 end module escdf_@%group%@
 """
 
+
 class EscdfFortranModule(object):
 
     def __init__(self, group, yaml_doc, template=None):
@@ -139,7 +141,7 @@ class EscdfFortranModule(object):
         f03_interfaces = []
         for elem in self.specs.get_elements():
             spec = self.specs.get_spec(elem)
-            for action in ["get", "put"]:
+            for action in ["read", "write"]:
                 spec["action"] = action
                 f03_interfaces.append("%s" % EscdfFortranInterface(spec))
 
