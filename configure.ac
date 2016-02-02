@@ -14,10 +14,11 @@ Electronic Structure Library Wiki.])
 
 # Init Autoconf
 AC_PREREQ([2.69])
-AC_INIT([LibESCDF], [0.1], [https://github.com/ElectronicStructureLibrary/libescdf/issues], [libescdf])
+AC_INIT([LibESCDF], [0.1.0], [https://github.com/ElectronicStructureLibrary/libescdf/issues], [libescdf])
 AC_CONFIG_AUX_DIR([config/gnu])
 AC_CONFIG_MACRO_DIR([config/m4])
 AC_CONFIG_SRCDIR([src/escdf.h])
+_AC_SRCDIRS([.])
 
 # Init Automake
 AC_CANONICAL_TARGET
@@ -43,6 +44,10 @@ AC_PROG_MAKE_SET
 AC_PROG_MKDIR_P
 AC_PROG_SED
 
+# Init variables
+escdf_core_incs=""
+AC_SUBST(escdf_core_incs) 
+
                     # ------------------------------------ #
 
 #
@@ -54,6 +59,8 @@ AC_PROG_SED
 
 # Optional features
 escdf_debug_enable_def="no"
+escdf_gcov_enable_def="no"
+escdf_memprof_enable_def="no"
 
 # MPI
 escdf_mpi_enable_def="auto"
@@ -72,7 +79,7 @@ escdf_hdf5_mpi_libs_def="-lhdf5_mpi -lhdf5"
 #
 
 # Default triggers for optional features must be yes or no, and not empty
-for escdf_cfg_default in debug; do
+for escdf_cfg_default in debug gcov memprof; do
   tmp_default=`eval echo \$\{escdf_${escdf_cfg_default}_enable_def\}`
   if test "${tmp_default}" != "no" -a \
           "${tmp_default}" != "yes"; then
@@ -107,6 +114,23 @@ AC_ARG_ENABLE([debug],
   [escdf_debug_enable="${enableval}"; escdf_debug_type="yon"],
   [escdf_debug_enable="${escdf_debug_enable_def}"; escdf_debug_type="def"])
 AC_SUBST(enable_debug)
+
+# gcov
+AC_ARG_ENABLE([gcov],
+  [AS_HELP_STRING([--enable-gcov],
+    [Enable code coverage (default: ${escdf_gcov_enable_def})])],
+  [escdf_gcov_enable="${enableval}"; escdf_gcov_type="yon"],
+  [escdf_gcov_enable="${escdf_gcov_enable_def}"; escdf_gcov_type="def"])
+AC_SUBST(enable_gcov)
+
+# memprof
+AC_ARG_ENABLE([memprof],
+  [AS_HELP_STRING([--enable-memprof],
+    [Enable memory profiling (default: ${escdf_memprof_enable_def})])],
+  [escdf_memprof_enable="${enableval}"; escdf_memprof_type="yon"],
+  [escdf_memprof_enable="${escdf_memprof_enable_def}"; escdf_memprof_type="def"])
+AC_SUBST(enable_memprof)  
+
 
                     # ------------------------------------ #
 
@@ -234,6 +258,8 @@ AC_SUBST(escdf_mpi_enable_def)
 
 # Triggers
 AC_SUBST(escdf_debug_enable)
+AC_SUBST(escdf_gcov_enable)
+AC_SUBST(escdf_memprof_enable)
 AC_SUBST(escdf_hdf5_enable)
 AC_SUBST(escdf_mpi_enable)
 
@@ -278,6 +304,9 @@ AM_PROG_CC_C_O
 AC_LANG_PUSH([C])
 AC_CHECK_HEADERS([assert.h string.h])
 AC_LANG_POP([C])
+
+# Unit test framework: the Check package
+ESCDF_SEARCH_CHECK
 
                     # ------------------------------------ #
 
@@ -397,6 +426,87 @@ fi
 
                     # ------------------------------------ #
 
+#
+# Instrumentation
+#
+
+# Memory profiling
+if test "${enable_memprof}" = "yes"; then
+  AC_CHECK_PROGS([VALGRIND], [valgrind])
+  if test "${VALGRIND}" = ""; then
+    AC_MSG_ERROR([memory profiling tool not found
+      please install valgrind first to perform memory profiling])
+  fi
+fi
+
+AM_CONDITIONAL([DO_CHECKMEM], [test "${enable_memprof}" = "yes"])
+
+# Code coverage
+AC_MSG_CHECKING([whether to enable code coverage (GCC only)])
+AC_MSG_RESULT([${enable_gcov}])
+
+CFLAGS_COVERAGE=""
+FCFLAGS_COVERAGE=""
+LDFLAGS_COVERAGE=""
+LIBS_COVERAGE=""
+
+if test "${enable_gcov}" = "yes"; then
+  if test "${ac_cv_c_compiler_gnu}" != "yes" -o \
+          "${lt_cv_prog_gnu_ld}" != "yes"; then
+    AC_MSG_ERROR([code coverage requires GNU compilers
+      please re-run configure using GCC compilers])
+  fi
+
+  AC_CHECK_PROGS([GCOV], [gcov])
+  if test "${GCOV}" = ""; then
+    AC_MSG_ERROR([gcov not found
+      please make sure that the gcov executable is in PATH])
+  fi
+
+  CFLAGS_COVERAGE="--coverage --no-inline"
+  LDFLAGS_COVERAGE="--coverage"
+  LIBS_COVERAGE="-lgcov"
+fi
+
+AM_CONDITIONAL([DO_COVERAGE], [test "${enable_gcov}" = "yes"])
+
+AC_SUBST(GCOV)
+AC_SUBST(CFLAGS_COVERAGE)
+AC_SUBST(FCFLAGS_COVERAGE)
+AC_SUBST(LDFLAGS_COVERAGE)
+AC_SUBST(LIBS_COVERAGE)
+
+
+                    # ------------------------------------ #
+
+#
+# Prepare data for the test suite
+#
+
+# Make data location available to check
+AC_DEFINE_UNQUOTED([ESCDF_CHK_DATADIR], "${ac_abs_top_srcdir}/escdf_references",
+  [Directory containing ESCDF files for the tests.])
+
+# Generate explicit dependencies for GCOV tests
+if test "${enable_gcov}" = "yes"; then
+  echo "# Script-generated makefile targets for GCOV tests" \
+    >src/gcov-tests-deps.mf
+  for src in ${ac_top_srcdir}/src/test_*.c; do
+    exe=`basename "${src}" | sed -e 's/\.c//'`
+    echo "" >>src/gcov-tests-deps.mf
+    echo "${exe}.log: gcov_clean.log" >>src/gcov-tests-deps.mf
+  done
+  for src in ${ac_top_srcdir}/src/test_*.in; do
+    exe=`basename "${src}" | sed -e 's/\.in//'`
+    echo "" >>src/gcov-tests-deps.mf
+    echo "${exe}.log: gcov_clean.log" >>src/gcov-tests-deps.mf
+  done
+  echo "" >>src/gcov-tests-deps.mf
+  echo "gcov_report.log: gcov_clean.log" >>src/gcov-tests-deps.mf
+fi
+
+                    # ------------------------------------ #
+
 # Write down YAML configuration
 AC_OUTPUT([config/data/libescdf-config.yml])
 
@@ -410,7 +520,9 @@ AC_MSG_NOTICE([----------------------])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([TSTAMP   = ${escdf_timestamp}])
 AC_MSG_NOTICE([])
-AC_MSG_NOTICE([DEBUG    = ${escdf_debug_enable} (init: ${escdf_debug_type})])
+AC_MSG_NOTICE([DEBUG     = ${escdf_debug_enable} (init: ${escdf_debug_type})])
+AC_MSG_NOTICE([COVERAGE  = ${escdf_enable_gcov} (init: ${escdf_gcov_type})])
+AC_MSG_NOTICE([PROFILING = ${escdf_enable_memprof} (init: ${escdf_memprof_type})])
 AC_MSG_NOTICE([])
 AC_MSG_NOTICE([MPI      = ${escdf_mpi_enable} (init: ${escdf_mpi_type})])
 AC_MSG_NOTICE([HDF5     = ${escdf_hdf5_enable} (init: ${escdf_hdf5_type})])
@@ -428,9 +540,22 @@ AC_MSG_NOTICE([LIBS     = ${LIBS}])
 AC_MSG_NOTICE([])
 
 # Output configuration
+AC_CONFIG_COMMANDS([script-perms],
+  [chmod u+x \
+    src/gcov_check_coverage \
+    src/gcov_clean \
+    src/gcov_report \
+    src/test_memory
+  ])
+
 AC_CONFIG_FILES([
   Makefile
   doc/Makefile
   src/Makefile
+  src/gcov_check_coverage
+  src/gcov_clean
+  src/gcov_report
+  src/test_memory
   config/data/libescdf.pc])
+
 AC_OUTPUT

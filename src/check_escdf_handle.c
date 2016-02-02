@@ -17,5 +17,26 @@
 
 */
 
-#include "handle.h"
+#include <check.h>
 
+#include "escdf_handle.h"
+
+START_TEST(test_handle_open)
+{
+    ck_assert(escdf_open("new_file.h5") != NULL);
+}
+END_TEST
+
+Suite * make_handle_suite(void)
+{
+    Suite *s;
+    TCase *tc_handle;
+
+    s = suite_create("Handle");
+
+    tc_handle = tcase_create("File opening and closing");
+    tcase_add_test(tc_handle, test_handle_open);
+    suite_add_tcase(s, tc_handle);
+
+    return s;
+}
