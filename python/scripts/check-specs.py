@@ -21,29 +21,36 @@ yaml_ctrl_specs = """\
 %YAML 1.2
 ---
 
-fields:
-    object:
-        presence: mandatory
-        type: str
-        values: [scalar, array, varying_array]
-    object_dims:
-        presence:
-            scalar: optional
-            array: mandatory
-            varying_array: mandatory
-        type: list
-        values: ["#number", "@ref"]
-    type:
-        presence: mandatory
-        type: str
-        values: [char, double, float, int, long_int, short_int, unsigned_int]
-    values:
-        presence: optional
-        type: list
-    range:
-        presence: optional
-        type: list
-        values: ["#range"]
+object:
+    presence: mandatory
+    type: str
+    values: [scalar, array, varying_array]
+object_dims:
+    presence:
+        scalar: optional
+        array: mandatory
+        varying_array: mandatory
+    type: list
+    values: ["#number", "@ref"]
+range:
+    presence: optional
+    type: list(2)
+    values: ["#range"]
+spec_mode:
+    presence: mandatory
+    type: str
+    values: ["mandatory", "optional"]
+spec_type:
+    presence: mandatory
+    type: str
+    values: ["buffer", "dataset", "metadata"]
+type:
+    presence: mandatory
+    type: str
+    values: [char, double, float, int, long_int, short_int, unsigned_int]
+values:
+    presence: optional
+    type: list
 
 """
 yaml_ctrl = yaml.load(yaml_ctrl_specs)

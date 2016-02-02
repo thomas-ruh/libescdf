@@ -61,7 +61,10 @@ class EscdfTemplate(object):
     def reindent(self, keyword, value):
 
         if ( self.re_newline.search(value) ):
-            sep = "\n" + " " * self.indents[keyword]
+            try:
+                sep = "\n" + " " * self.indents[keyword]
+            except KeyError:
+                sep = "\n"
             return sep.join(value.split("\n"))
         else:
             return value
@@ -230,7 +233,7 @@ class EscdfFortranInterface(object):
                             "intent":"in"}
                     params_desc[specs["f03_name"]]["dims"].append(dim_name)
                 else:
-                    params_desc[target]["dims"].append(dim)
+                    params_desc[specs["f03_name"]]["dims"].append(dim)
         params_list.append(specs["f03_name"])
         params_intent = f03_intent[specs["f03_action"]]
         params_desc[specs["f03_name"]] = {
@@ -261,7 +264,7 @@ class EscdfFortranInterface(object):
 # Default Fortran wrapper structure
 f03_wrapper_default = """\
 void @name@(
-    @params@) {
+        @params@) {
     @glue_code@
 }"""
 
@@ -291,7 +294,7 @@ class EscdfFortranWrapper(object):
     def build_wrapper_glue(self, specs):
 
         retval = ""
-        action = specs["action"];
+        action = specs["action"]
 
         # Take care of dimensions first
         if ( len(specs["glue"]) > 1 ):
@@ -308,13 +311,18 @@ class EscdfFortranWrapper(object):
                     raise ValueError("unsupported action '%s'" % action)
 
         # Finish with the main target
+        if ( retval != "" ):
+            retval += "\n"
         param = specs["glue"][-1]
         if ( action == "get" ):
             param_ptr = ""
+            param_cast = ""
             if ( len(specs["glue"]) == 1 ):
                 param_ptr = "*"
-            retval += "%s%s = escdf_%s_%s_%s();" % \
-                (param_ptr, param, self.group, param, action)
+            else:
+                param_cast = "(%s *)" % specs["type"]
+            retval += "%s%s = %sescdf_%s_%s_%s();" % \
+                (param_ptr, param, param_cast, self.group, param, action)
         elif ( action == "put" ):
             retval += "escdf_%s_%s_%s(%s%s);" % \
                 (self.group, param, action, param,
@@ -350,13 +358,14 @@ class EscdfFortranWrapper(object):
         params_mod = ""
         if ( action == "put" ):
             params_mod = "const "
-        params_string = "%s%s %s" % \
+        params_string = "%s%s *%s" % \
             (params_mod, self.wrapper_type[specs["type"]], target)
         for dim in params_list:
-            params_string += ", %s%s %s" % \
+            params_string += ", %s%s *%s" % \
             ( params_mod, self.wrapper_type["unsigned_int"], dim)
 
         # Gather info needed for params and glue code
+        retval["type"] = specs["type"]
         retval["desc"] = params_string
         retval["glue"] = []
         if ( len(target_dims) > 0 ):
@@ -428,13 +437,9 @@ class EscdfFortranGlue(object):
         self.patterns["group"] = self.group
         self.patterns["glues"] = "\n".join(f03_glues)
 
-        print(self.template)
-        print(self.patterns.keys())
-
 
     def __str__(self):
 
-        print("GLUE:", "glues" in self.patterns)
         return self.template.substitute(self.patterns)
 
 
@@ -448,8 +453,38 @@ class EscdfFortranGlue(object):
 f03_mod_default = """\
 module escdf_@group@
 
+    use iso_c_binding
+
     implicit none
 
+    interface
+        subroutine escdf_f03_@group@_new(@group@)
+            use iso_c_binding
+            implicit none
+            C_F_POINTER, intent(out) :: @group@
+        end subroutine escdf_f03_@group@_new
+    end interface
+    interface
+        subroutine escdf_f03_@group@_read_metadata(@group@)
+            use iso_c_binding
+            implicit none
+            C_F_POINTER, intent(inout) :: @group@
+        end subroutine escdf_f03_@group@_read_metadata
+    end interface
+    interface
+        subroutine escdf_f03_@group@_write_metadata(@group@)
+            use iso_c_binding
+            implicit none
+            C_F_POINTER, intent(in) :: @group@
+        end subroutine escdf_f03_@group@_write_metadata
+    end interface
+    interface
+        subroutine escdf_f03_@group@_free(@group@)
+            use iso_c_binding
+            implicit none
+            C_F_POINTER, intent(inout) :: @group@
+        end subroutine escdf_f03_@group@_free
+    end interface
     @interfaces@
 
 end module escdf_@group@
