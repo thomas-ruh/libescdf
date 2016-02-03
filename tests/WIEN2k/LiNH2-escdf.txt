@@ -1,24 +1,18 @@
- number_of_physical_dimensions           3
- absolute_or_reduced_coordinates           2
- dimension_types           1           1           1
- embedded_system no 
- space_group          82
- number_of_sites          16
- number_of_species           6
+ number_of_physical_dimensions     3
+ absolute_or_reduced_coordinates   2
+ dimension_types                   1 1 1
+ embedded_system                   no
+ space_group                       82
+ number_of_sites                   16
+ number_of_species                 6
  species_names
- Li  1+                                                                         
-  
- Li  1+                                                                         
-  
- Li  1+                                                                         
-  
- N                                                                              
-  
- H                                                                              
-  
- H                                                                              
-  
- chemical_symbolsLiLiLiN H H 
+ Li  1+
+ Li  1+
+ Li  1+
+ N
+ H
+ H
+ chemical_symbols Li Li Li N H H 
  atomic_numbers   3.00000000000000        3.00000000000000     
    3.00000000000000        7.00000000000000        1.00000000000000     
    1.00000000000000     
@@ -55,7 +49,7 @@
   0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000
   0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000
   0.000000000000000E+000
- symmorphicyes
+ symmorphic yes
  local_rotations   1.00000000000000       0.000000000000000E+000
   0.000000000000000E+000  0.000000000000000E+000   1.00000000000000     
   0.000000000000000E+000  0.000000000000000E+000  0.000000000000000E+000

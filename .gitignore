@@ -46,3 +46,6 @@ tmp-*
 /src/*.la
 /src/*.c~
 /src/*.h~
+/tests/WIEN2k/*.mod
+/tests/WIEN2k/*.o
+/tests/WIEN2k/test_escdf_fake
