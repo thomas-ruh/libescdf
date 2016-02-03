@@ -6,9 +6,9 @@
  number_of_sites                   16
  number_of_species                 6
  species_names
- Li  1+
- Li  1+
- Li  1+
+ Li__1+
+ Li__1+
+ Li__1+
  N
  H
  H
