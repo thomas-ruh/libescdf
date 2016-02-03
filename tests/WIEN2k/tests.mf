@@ -1,0 +1,26 @@
+CFLAGS = -g3 -fno-inline -O0
+FCFLAGS = -g3 -fno-inline -O0
+
+all_targets all: libescdf_fake.a test_escdf_fake
+
+test_escdf_fake: test_escdf_fake.F90 escdf_fake.o fescdf_geometry.o
+	gfortran $(FCFLAGS) -o $@ $?
+
+libescdf_fake.a: escdf_fake.o fescdf_geometry.o
+	ar rv $@ $?
+
+fescdf_geometry.o: fescdf_geometry.F90 escdf_fake.o
+	gfortran $(FCFLAGS) -c fescdf_geometry.F90
+
+escdf_fake.o: escdf_fake.c
+	gcc $(CFLAGS) -c escdf_fake.c
+
+test: test_escdf_fake
+	cp LiNH2-escdf.txt test-read.tmp
+	./test_escdf_fake
+	test -e test-write.tmp
+	#colordiff -ub test-read test-write.tmp || /bin/true
+
+clean:
+	rm -f *.a *.o *.mod test_escdf_fake
+
